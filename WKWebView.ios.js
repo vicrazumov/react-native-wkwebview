@@ -439,7 +439,8 @@ class WKWebView extends React.Component {
 
   _onMessage = (event: Event) => {
     const onMessage = this.props.onMessage;
-    const { data } = event.nativeEvent;
+    const data = event.nativeEvent;
+    console.log(data);
 
     if (data.indexOf(RN_MESSAGES_CHANNEL_PREFIX) !== 0) {
       return onMessage && onMessage(event.nativeEvent); // that's not something that was received from rn messages channel
