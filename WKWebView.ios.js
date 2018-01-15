@@ -238,7 +238,7 @@ class WKWebView extends React.Component {
 
   componentWillMount() {
     if (this.props.startInLoadingState) {
-      this.setState({viewState: WebViewState.LOADING});
+      this.setState({ viewState: WebViewState.LOADING });
     }
   }
 
@@ -279,7 +279,7 @@ class WKWebView extends React.Component {
 
     let source = {};
     if (this.props.source && typeof this.props.source == 'object') {
-      source = Object.assign({}, this.props.source, { 
+      source = Object.assign({}, this.props.source, {
         sendCookies: this.props.sendCookies,
         customUserAgent: this.props.customUserAgent || this.props.userAgent
       });
@@ -411,7 +411,7 @@ class WKWebView extends React.Component {
 
   _onLoadingError = (event: Event) => {
     event.persist(); // persist this event because we need to store it
-    const {onError, onLoadEnd} = this.props;
+    const { onError, onLoadEnd } = this.props;
     onError && onError(event);
     onLoadEnd && onLoadEnd(event);
     console.warn('Encountered an error loading page', event.nativeEvent);
@@ -423,7 +423,7 @@ class WKWebView extends React.Component {
   };
 
   _onLoadingFinish = (event: Event) => {
-    const {onLoad, onLoadEnd} = this.props;
+    const { onLoad, onLoadEnd } = this.props;
     onLoad && onLoad(event);
     onLoadEnd && onLoadEnd(event);
     this.setState({
@@ -438,13 +438,13 @@ class WKWebView extends React.Component {
   };
 
   _onMessage = (event: Event) => {
-    const onMessage = this.props.onMessage;    
+    const onMessage = this.props.onMessage;
     const { data } = event.nativeEvent;
 
     if (data.indexOf(RN_MESSAGES_CHANNEL_PREFIX) !== 0) {
       return onMessage && onMessage(event.nativeEvent); // that's not something that was received from rn messages channel
     }
-    
+
     // remove the unique identifier so that only the user's original message 
     // remains
     const jsonString = data.replace(RN_MESSAGES_CHANNEL_PREFIX, '');
@@ -466,27 +466,27 @@ class WKWebView extends React.Component {
   };
 
   send = string => {
-    this.webview.evaluateJavaScript(`(function (global) {
-      global.RNMessagesChannel && global.RNMessagesChannel.emit('text', ${JSON.stringify(
+    this.webview.evaluateJavaScript(`
+      window.RNMessagesChannel && window.RNMessagesChannel.emit('text', ${JSON.stringify(
         string
       )}, true);
-    })(window)`);
+    `);
   }
 
   sendJSON = json => {
-    this.webview.evaluateJavaScript(`(function (global) {
-      global.RNMessagesChannel && global.RNMessagesChannel.emit('json', ${JSON.stringify(
+    this.webview.evaluateJavaScript(`
+      window.RNMessagesChannel && window.RNMessagesChannel.emit('json', ${JSON.stringify(
         json
       )}, true);
-    })(window)`);
+    `);
   }
 
   emit = (eventName, eventData) => {
-    this.webview.evaluateJavaScript(`(function (global) {
-      global.RNMessagesChannel && global.RNMessagesChannel.emit(${JSON.stringify(
+    this.webview.evaluateJavaScript(`
+      window.RNMessagesChannel && window.RNMessagesChannel.emit(${JSON.stringify(
         eventName
       )}, ${JSON.stringify(eventData)}, true);
-    })(window)`);
+    `);
   }
 
   _onScroll = (event: Event) => {
