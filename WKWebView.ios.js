@@ -231,6 +231,8 @@ class WKWebView extends React.Component {
   };
 
   constructor() {
+    super();
+    
     this.messagesChannel = new EventEmitter();
   }
 
