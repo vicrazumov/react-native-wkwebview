@@ -17,6 +17,10 @@ import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource'
 import deprecatedPropType from 'react-native/Libraries/Utilities/deprecatedPropType';
 import invariant from 'fbjs/lib/invariant';
 import keyMirror from 'fbjs/lib/keyMirror';
+
+import EventEmitter from 'events';
+const RN_MESSAGES_CHANNEL_PREFIX = 'f251c210-e7c9-42fa-bae3-b9352ec3722a';
+
 const WKWebViewManager = NativeModules.WKWebViewManager;
 
 var BGWASH = 'rgba(255,255,255,0.8)';
@@ -226,6 +230,10 @@ class WKWebView extends React.Component {
     startInLoadingState: true,
   };
 
+  constructor() {
+    this.messagesChannel = new EventEmitter();
+  }
+
   componentWillMount() {
     if (this.props.startInLoadingState) {
       this.setState({viewState: WebViewState.LOADING});
@@ -428,9 +436,56 @@ class WKWebView extends React.Component {
   };
 
   _onMessage = (event: Event) => {
-    const onMessage = this.props.onMessage;
-    onMessage && onMessage(event.nativeEvent);
+    const onMessage = this.props.onMessage;    
+    const { data } = event.nativeEvent;
+
+    if (data.indexOf(RN_MESSAGES_CHANNEL_PREFIX) !== 0) {
+      return onMessage && onMessage(event.nativeEvent); // that's not something that was received from rn messages channel
+    }
+    
+    // remove the unique identifier so that only the user's original message 
+    // remains
+    const jsonString = data.replace(RN_MESSAGES_CHANNEL_PREFIX, '');
+
+    // parse original message into an object
+    const parsedMsg = JSON.parse(jsonString);
+
+    switch (parsedMsg.type) {
+      case 'json':
+        this.messagesChannel.emit('json', parsedMsg.payload);
+        break;
+      case 'text':
+        this.messagesChannel.emit('text', parsedMsg.payload);
+        break;
+      case 'event':
+        this.messagesChannel.emit(parsedMsg.meta.eventName, parsedMsg.payload);
+        break;
+    }
   };
+
+  send = string => {
+    this.webview.injectJavaScript(`(function (global) {
+      global.RNMessagesChannel && global.RNMessagesChannel.emit('text', ${JSON.stringify(
+        string
+      )}, true);
+    })(window)`);
+  }
+
+  sendJSON = json => {
+    this.webview.injectJavaScript(`(function (global) {
+      global.RNMessagesChannel && global.RNMessagesChannel.emit('json', ${JSON.stringify(
+        json
+      )}, true);
+    })(window)`);
+  }
+
+  emit = (eventName, eventData) => {
+    this.webview.injectJavaScript(`(function (global) {
+      global.RNMessagesChannel && global.RNMessagesChannel.emit(${JSON.stringify(
+        eventName
+      )}, ${JSON.stringify(eventData)}, true);
+    })(window)`);
+  }
 
   _onScroll = (event: Event) => {
     const onScroll = this.props.onScroll;
