@@ -232,7 +232,7 @@ class WKWebView extends React.Component {
 
   constructor() {
     super();
-    
+
     this.messagesChannel = new EventEmitter();
   }
 
@@ -466,7 +466,7 @@ class WKWebView extends React.Component {
   };
 
   send = string => {
-    this.webview.injectJavaScript(`(function (global) {
+    this.webview.evaluateJavaScript(`(function (global) {
       global.RNMessagesChannel && global.RNMessagesChannel.emit('text', ${JSON.stringify(
         string
       )}, true);
@@ -474,7 +474,7 @@ class WKWebView extends React.Component {
   }
 
   sendJSON = json => {
-    this.webview.injectJavaScript(`(function (global) {
+    this.webview.evaluateJavaScript(`(function (global) {
       global.RNMessagesChannel && global.RNMessagesChannel.emit('json', ${JSON.stringify(
         json
       )}, true);
@@ -482,7 +482,7 @@ class WKWebView extends React.Component {
   }
 
   emit = (eventName, eventData) => {
-    this.webview.injectJavaScript(`(function (global) {
+    this.webview.evaluateJavaScript(`(function (global) {
       global.RNMessagesChannel && global.RNMessagesChannel.emit(${JSON.stringify(
         eventName
       )}, ${JSON.stringify(eventData)}, true);
